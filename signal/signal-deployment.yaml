@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpl-signal
+  namespace: default
+  labels:
+    app: signal-cli
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: signal-cli
+  template:
+    metadata:
+      labels:
+        app: signal-cli
+    spec:
+      containers:
+        - env:
+            - name: MODE
+              value: json-rpc
+            - name: TZ
+              value: Europe/Berlin
+          name: signal-cli
+          image: bbernhard/signal-cli-rest-api:0.82
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: /home/.local/share/signal-cli
+              name: pvc-signal
+      volumes:
+        - name: pvc-signal
+          persistentVolumeClaim:
+            claimName: pvc-signal
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-signal
+  namespace: default
+spec:
+  type: LoadBalancer
+  selector:
+    app: signal-cli
+  ports:
+    - protocol: TCP
+      targetPort: 8080
+      port: 9922
