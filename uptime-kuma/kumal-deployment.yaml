@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpl-kuma
+  namespace: monitoring
+  labels:
+    app: uptime-kuma
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: uptime-kuma
+  template:
+    metadata:
+      labels:
+        app: uptime-kuma
+    spec:
+      containers:
+        - env:
+            - name: TZ
+              value: Europe/Berlin
+          name: uptime-kuma
+          image: louislam/uptime-kuma:1.23.12
+          ports:
+            - containerPort: 3001
+          volumeMounts:
+            - mountPath: /app/data
+              name: pvc-kuma
+      volumes:
+        - name: pvc-kuma
+          persistentVolumeClaim:
+            claimName: pvc-kuma
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-kuma
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  selector:
+    app: uptime-kuma
+  ports:
+    - protocol: TCP
+      targetPort: 3001
+      port: 3001
