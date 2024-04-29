@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpl-influxdb
+  namespace: monitoring
+  labels:
+    app: influxdb
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+        - name: influxdb
+          image: influxdb:2.7.6
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: INFLUXDB_ADMIN_USER_PASSWORD    
+              valueFrom:
+                secretKeyRef:
+                  name: sec-influxdb
+                  key: adminUserPassword
+          ports:
+            - containerPort: 8086
+              protocol: TCP
+          volumeMounts:
+            - name: pvc-influxdb
+              mountPath: /var/lib/influxdb2
+      volumes:
+        - name: pvc-influxdb
+          persistentVolumeClaim:
+            claimName: pvc-influxdb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-influxdb
+  namespace: monitoring
+spec:
+  ports:
+    - port: 8086
+      protocol: TCP
+      targetPort: 8086
+  selector:
+    app: influxdb
+  sessionAffinity: None
+  type: LoadBalancer
