@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpl-paperless
+  namespace: paperless
+  labels:
+    app: paperless
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:        
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.7.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PAPERLESS_AUTO_LOGIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sec-paperless
+                  key: autoLoginUsername
+            - name: PAPERLESS_IGNORE_DATES
+              valueFrom:
+                secretKeyRef:
+                  name: sec-paperless
+                  key: ignoreDates
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: "deu"
+            - name: PAPERLESS_REDIS
+              value: "redis://svc-redis.paperless.svc.cluster.local:6379"
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sec-paperless
+                  key: secretKey
+            - name: PAPERLESS_TIME_ZONE
+              value: "Europe/Berlin"
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: pvc-paperless-data
+              mountPath: /usr/src/paperless/data
+            - name: pvc-paperless-media
+              mountPath: /usr/src/paperless/media            
+      volumes:
+        - name: pvc-paperless-data
+          persistentVolumeClaim:
+            claimName: pvc-paperless-data
+        - name: pvc-paperless-media
+          persistentVolumeClaim:
+            claimName: pvc-paperless-media
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-paperless
+  namespace: paperless
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8088
+      protocol: TCP
+      targetPort: 8000      
+  selector:
+    app: paperless
