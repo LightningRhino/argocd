@@ -19,7 +19,7 @@ spec:
     spec:        
       containers:
         - name: paperless
-          image: ghcr.io/paperless-ngx/paperless-ngx:2.9.0
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.10.1
           imagePullPolicy: IfNotPresent
           env:
             - name: PAPERLESS_AUTO_LOGIN_USERNAME
