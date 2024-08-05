@@ -27,7 +27,7 @@ spec:
             - name: TZ
               value: Europe/Berlin
           name: signal-cli
-          image: bbernhard/signal-cli-rest-api:0.85
+          image: bbernhard/signal-cli-rest-api:0.86
           ports:
             - containerPort: 8080
           volumeMounts:
