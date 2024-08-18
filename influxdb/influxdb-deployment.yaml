@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: influxdb
-          image: influxdb:2.7.9
+          image: influxdb:2.7.10
           imagePullPolicy: IfNotPresent
           env:
             - name: INFLUXDB_ADMIN_USER_PASSWORD    
