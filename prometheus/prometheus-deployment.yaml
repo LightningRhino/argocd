@@ -24,7 +24,7 @@ spec:
         fsGroup: 65534
       containers:
         - name: prometheus
-          image: prom/prometheus:v3.1.0
+          image: prom/prometheus:v3.2.0
           imagePullPolicy: IfNotPresent
           args:
             - "--storage.tsdb.retention.time=7d"
